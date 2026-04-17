@@ -2,6 +2,8 @@ const express = require("express")
 const bcrypt = require("bcrypt")
 const router = express.Router()
 const User = require("../models/user")
+const { createTokenForUser } = require("../services/authentication")
+
 
 
 router.get("/signin", (req,res)=>{
@@ -46,25 +48,36 @@ router.post("/signin", async (req, res) => {
     const { email, password } = req.body
 
     if (!email || !password) {
-      return res.send("All fields are required")
+  return res.render("signin", { error: "All fields are required" })
     }
 
     const user = await User.findOne({ email })
     if (!user) {
-      return res.send("User not found")
-    }
+  return res.render("signin", { error: "Email not Registered with us" })
+    }  
 
     const isMatch = await bcrypt.compare(password, user.password)
 
     if (!isMatch) {
-      return res.send("Invalid password")
+  return res.render("signin", { error: "Invalid password" })
     }
 
+    const token = createTokenForUser(user)
+
+    res.cookie("token", token)
+
     return res.redirect("/")
+
   } catch (error) {
-    console.log(error)
-    return res.status(500).send("Internal Server Error")
+    return res.render("signin",{
+      error: "Incorrect email or password"
+    })
+    
   }
+})
+
+router.get("/logout", (req,res)=>{
+  res.clearCookie("token").redirect("/")
 })
 
 module.exports = router
