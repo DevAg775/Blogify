@@ -4,6 +4,7 @@ const express = require("express")
 const path = require("path")
 const connectDB = require("./config/connect")
 const app = express()
+const userRoute = require("./routes/user")
 
 const PORT = 8000;
 
@@ -14,6 +15,7 @@ app.set("views", path.resolve("./views"))
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+app.use("/",userRoute)
 
 app.get("/", (req,res)=>{
     res.render("home")

@@ -41,4 +41,30 @@ router.post("/signup",async (req,res)=>{
     }
 })
 
+router.post("/signin", async (req, res) => {
+  try {
+    const { email, password } = req.body
+
+    if (!email || !password) {
+      return res.send("All fields are required")
+    }
+
+    const user = await User.findOne({ email })
+    if (!user) {
+      return res.send("User not found")
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password)
+
+    if (!isMatch) {
+      return res.send("Invalid password")
+    }
+
+    return res.redirect("/")
+  } catch (error) {
+    console.log(error)
+    return res.status(500).send("Internal Server Error")
+  }
+})
+
 module.exports = router
