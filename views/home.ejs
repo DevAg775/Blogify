@@ -3,22 +3,42 @@
 <head>
     <%- include('./Partials/head') %> 
     <title>Home Page</title>
+    <style>
+      body {
+        background-image: url('https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1920&q=80');
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+        min-height: 100vh;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.85);
+        z-index: -1;
+      }
+    </style>
 </head>
 <body>
     <%- include('./Partials/nav') %> 
 
     <div class="container mt-3">
-    <% blogs.forEach(blog => { %>
-     <div class="card" style="width: 18rem;">
-     <img src="<%= blog.coverImageURL %> " class="card-img-top" alt="...">
-     <div class="card-body">
-     <h5 class="card-title"><%= blog.title %> </h5>
-     <a href="/blog/<%= blog._id %> " class="btn btn-primary">View</a>
-     </div>
-     </div>
-    <% }) %>
+      <div class="row row-cols-4">
+        <% blogs.forEach(blog => { %>
+        <div class="col">
+          <div class="card col" style="width: 18rem;">
+            <img src="<%= blog.coverImageURL %>" class="card-img-top">
+            <div class="card-body">
+              <h5 class="card-title"><%= blog.title %></h5>
+              <a href="/blog/<%= blog._id %>" class="btn btn-primary">View</a>
+            </div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
     </div>
-    <%- include('./Partials/scripts') %> 
 
+    <%- include('./Partials/scripts') %> 
 </body>
 </html>

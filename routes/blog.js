@@ -1,39 +1,65 @@
-const express = require("express")
-const multer = require("multer")
-const path = require("path")
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
 const router = express.Router();
-const Blog = require("../models/blog")
+const Blog = require("../models/blog");
+const Comment = require("../models/comment");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null,path.resolve (`./public/uploads`))
+    cb(null, path.resolve(`./public/uploads`));
   },
   filename: function (req, file, cb) {
-    const fileName = `${Date.now()}-${file.originalname}`
-    cb(null, fileName)
-  }
-})
-
-const upload = multer({ storage: storage })
-
-
-router.get("/add-new",(req,res)=>{
-    return res.render("addblog",{
-        user: req.user
-    })
-})
-
-router.post("/",upload.single("coverImage"),async (req,res)=>{
-    const { title, body } = req.body;
-
-const blog = await Blog.create({
-  body,
-  title,
-  createdBy: req.user._id,
-  coverImageURL: `/uploads/${req.file.filename}`,
+    const fileName = `${Date.now()}-${file.originalname}`;
+    cb(null, fileName);
+  },
 });
 
-return res.redirect(`/blog/${blog._id}`);
-})
+const upload = multer({ storage: storage });
 
-module.exports=router;
+router.get("/add-new", (req, res) => {
+  return res.render("addblog", { user: req.user });
+});
+
+router.post("/", upload.single("coverImage"), async (req, res) => {
+  try {
+    const { title, body } = req.body;
+    const blog = await Blog.create({
+      body,
+      title,
+      createdBy: req.user._id,
+      coverImageURL: `/uploads/${req.file.filename}`,
+    });
+    return res.redirect(`/blog/${blog._id}`);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Something went wrong");
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id).populate("createdBy");
+    const comments = await Comment.find({ blogId: req.params.id }).populate("createdBy");
+    return res.render("blog", { user: req.user, blog, comments });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Something went wrong");
+  }
+});
+
+router.post("/comment/:blogId", async (req, res) => {
+  try {
+    const comment = await Comment.create({
+      content: req.body.content,
+      blogId: req.params.blogId,
+      createdBy: req.user._id,
+    });
+    return res.redirect(`/blog/${req.params.blogId}`);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Something went wrong");
+  }
+});
+
+module.exports = router;
